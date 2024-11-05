@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rowdies:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="home.css">
+    <title>Document</title>
+</head>
+<body>
+    <header>
+        <img src="imagens/logo.svg" alt="">
+    </header>
+    
+    <h1>CARDAPIO</h1>
+
+    <ul id="listaProdutos"></ul>
+    
+
+    <h3>Adicionar Novo Produto</h3>
+    <form id="formProduto">
+        <label for="nome">Nome:</label>
+        <input type="text" id="nome" name="nome" required>
+        <label for="preco">Preço:</label>
+        <input type="number" step="0.01" id="preco" name="preco" required>
+        <button clas="add" type="submit">Adicionar Produto</button>
+    </form>
+    
+    <div>
+        <a href="dados.html">Finalizar pedido</a>
+    </div>
+
+    <script>
+        // Função para carregar produtos do servidor e exibir na página
+        async function carregarProdutos() {
+            const response = await fetch('/produtos');
+            const produtos = await response.json();
+            const lista = document.getElementById('listaProdutos');
+            lista.innerHTML = '';
+
+            produtos.forEach(produto => {
+                const item = document.createElement('li');
+                item.textContent = `${produto.nome} - R$ ${produto.preco}`;
+
+                // Criar botão "Excluir"
+                const botaoExcluir = document.createElement('button');
+                botaoExcluir.textContent = 'Excluir';
+                botaoExcluir.onclick = () => excluirProduto(produto.id); // Associa o botão ao ID do produto
+
+                // Adicionar o botão "Excluir" ao item
+                item.appendChild(botaoExcluir);
+                lista.appendChild(item);
+            });
+        }
+
+        // Função para enviar um novo produto para o servidor
+        document.getElementById('formProduto').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const nome = document.getElementById('nome').value;
+            const preco = document.getElementById('preco').value;
+
+            await fetch('/produtos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nome, preco })
+            });
+
+            carregarProdutos();
+            document.getElementById('formProduto').reset();
+        });
+
+        // Função para excluir um produto pelo ID
+        async function excluirProduto(id) {
+            await fetch(`/produtos/${id}`, { method: 'DELETE' });
+            carregarProdutos(); // Atualiza a lista após excluir o produto
+        }
+
+        // Carregar a lista de produtos ao carregar a página
+        carregarProdutos();
+    </script>
+</body>
+</html>
